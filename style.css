@@ -1,0 +1,67 @@
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --navy:#0f1f3d;
+  --navy2:#1a3260;
+  --indigo:#2d4fa1;
+  --blue-light:#e8edf8;
+  --coral:#e8523a;
+  --coral-light:#fdecea;
+  --gold:#f5a623;
+  --gold-light:#fef6e7;
+  --green:#1e9e6b;
+  --green-light:#e6f7f2;
+  --white:#ffffff;
+  --off-white:#f7f8fc;
+  --gray-100:#eef0f6;
+  --gray-200:#dde1ed;
+  --gray-400:#9ba3bc;
+  --gray-600:#5a6480;
+  --gray-800:#2c3452;
+  --text:#1a1e2e;
+  --shadow-sm:0 2px 8px rgba(15,31,61,0.08);
+  --shadow-md:0 8px 32px rgba(15,31,61,0.12);
+  --shadow-lg:0 20px 60px rgba(15,31,61,0.18);
+  --radius:14px;
+  --radius-sm:8px;
+  --font-serif:'Playfair Display',Georgia,serif;
+  --font-sans:'DM Sans',sans-serif;
+  --font-mono:'DM Mono',monospace;
+}
+
+html{scroll-behavior:smooth}
+body{
+  background:var(--off-white);
+  color:var(--text);
+  font-family:var(--font-sans);
+  font-size:14px;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── SIDEBAR ── */
+.layout{display:flex;min-height:100vh}
+
+.sidebar{
+  width:260px;
+  min-width:260px;
+  background:var(--navy);
+  display:flex;
+  flex-direction:column;
+  padding:0;
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow-y:auto;
+  z-index:50;
+  animation:slideRight .5s ease both;
+}
+.sidebar .logo{
+  font-family:var(--font-serif);
+  color:var(--white);
+  font-size:24px;
+  font-weight:700;
+  padding:32px 24px;
+  text-align:center;
+}   
