@@ -1,13 +1,249 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Docentes</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="Script.js"></script>
-<link rel="stylesheet" href="style.css">
+  <!-- Metadatos básicos -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión Docentes</title>
+
+  <!-- Fuentes externas -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Script principal -->
+  <script src="Script.js"></script>
+  <!-- Hoja de estilos -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+<!-- Contenedor principal que alberga sidebar y contenido -->
+<div class="layout">
+
+  <!-- SIDEBAR: navegación lateral -->
+  <aside class="sidebar">
+    <!-- Branding -->
+    <div class="sidebar-brand">
+      <div class="brand-icon">🧠</div>
+      <div class="brand-name">Instituto Técnico</div>
+      <div class="brand-sub">Sistema Académico</div>
+    </div>
+
+    <!-- Sección de módulos -->
+    <div class="sidebar-section">Módulos</div>
+    <!-- Ítem de navegación activo -->
+    <div class="nav-item active"><span class="icon">👩‍🏫</span> Docentes</div>
     
+    <!-- Estadísticas laterales -->
+    <div class="sidebar-stats">
+      <!-- Primer mini-estadística -->
+      <div class="mini-stat">
+        <span class="mini-stat-icon">👩‍🏫</span>
+        <div class="mini-stat-info">
+          <div class="num" id="stat-total-side">0</div>
+          <div class="lbl">Docentes activos</div>
+        </div>
+      </div>
+      <!-- Segunda mini-estadística -->
+      <div class="mini-stat">
+        <span class="mini-stat-icon">🏫</span>
+        <div class="mini-stat-info">
+          <div class="num">3</div>
+          <div class="lbl">Áreas académicas</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN: área de contenido principal -->
+  <div class="main">
+
+    <!-- TOPBAR: encabezado con título, búsqueda y botón -->
+    <div class="topbar">
+      <div class="topbar-title">Gestión de <span>Docentes</span></div>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search" placeholder="Buscar docente">
+      </div>
+      <button class="btn btn-primary" onclick="openModal()">
+        <span style="font-size:16px">+</span> Nuevo Docente
+      </button>
+    </div>
+
+    <!-- CONTENT: filtros y tabla de datos -->
+    <div class="content">
+
+      <!-- Botones de filtro por área -->
+      <div class="filters">
+        <button class="chip active-all" data-f="all" onclick="setFilter('all',this)">Todos los docentes</button>
+        <button class="chip" data-f="Matemáticas" onclick="setFilter('Matemáticas',this)">📐 Matemáticas</button>
+        <button class="chip" data-f="Ciencias" onclick="setFilter('Ciencias',this)">🔬 Ciencias</button>
+        <button class="chip" data-f="Sistemas" onclick="setFilter('Sistemas',this)">💻 Sistemas</button>
+      </div>
+
+      <!-- Carta que contiene la tabla -->
+      <div class="card">
+        <div class="card-header">
+          <!-- Título dinámico -->
+          <div class="card-header-title" id="card-title">Todos los Docentes</div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <span id="count-badge" style="font-size:12px;color:var(--gray-400)">0 registros</span>
+          </div>
+        </div>
+
+        <!-- Tabla responsive -->
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <!-- Encabezados con ordenación -->
+              <tr>
+                <th onclick="sortBy('nombre')">Docente ↕</th>
+                <th onclick="sortBy('tipoDoc')">Documento</th>
+                <th onclick="sortBy('fechaNac')">Nacimiento</th>
+                <th onclick="sortBy('nivel')">Nivel</th>
+                <th onclick="sortBy('area')">Área</th>
+                <th onclick="sortBy('asignatura')">Asignatura</th>
+                <th onclick="sortBy('grado')">Semestre</th>
+                <th>EPS</th>
+                <th onclick="sortBy('salario')">Salario ↕</th>
+                <th style="text-align:center">Acciones</th>
+              </tr>
+            </thead>
+            <!-- Cuerpo de la tabla rellenado vía JS -->
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Paginación -->
+        <div class="pagination">
+          <div class="page-info" id="page-info">—</div>
+          <div class="page-btns" id="page-btns"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FORM MODAL ──: formulario emergente para crear/editar docentes -->
+<div class="overlay" id="modal-ov" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-hero">
+      <div class="modal-hero-text">
+        <div class="sup">Sistema Académico</div>
+        <h2 id="modal-title">Registrar <em>Docente</em></h2>
+      </div>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="form" onsubmit="handleSubmit(event)">
+        <!-- Campo oculto para el id -->
+        <input type="hidden" id="f-id">
+
+        <!-- Sección: identificación personal -->
+        <div class="section-label">Identificación Personal</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="lbl">Tipo de Documento</label>
+            <div class="sel-wrap">
+              <select class="fi" id="f-tipoDoc" required>
+                <option value="">Seleccionar</option>
+                <option>C.C</option><option>C.E</option><option>TI</option><option>NIUP</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="lbl">Número de Documento</label>
+            <input class="fi" type="text" id="f-numDoc" placeholder="Ej. 1023456789" required>
+          </div>
+          <div class="form-group">
+            <label class="lbl">Nombre(s)</label>
+            <input class="fi" type="text" id="f-nombre" placeholder="Nombres completos" required>
+          </div>
+          <div class="form-group">
+            <label class="lbl">Apellido(s)</label>
+            <input class="fi" type="text" id="f-apellido" placeholder="Apellidos completos" required>
+          </div>
+          <div class="form-group full">
+            <label class="lbl">Fecha de Nacimiento</label>
+            <input class="fi" type="date" id="f-fechaNac" required>
+          </div>
+        </div>
+
+        <!-- Sección: información académica -->
+        <div class="section-label">Información Académica</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="lbl">Nivel de Estudios</label>
+            <div class="sel-wrap">
+              <select class="fi" id="f-nivel" required>
+                <option value="">Seleccionar…</option>
+                <option>Pregrado</option><option>Maestría</option><option>Doctorado</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="lbl">Área</label>
+            <div class="sel-wrap">
+              <select class="fi" id="f-area" required>
+                <option value="">Seleccionar…</option>
+                <option>Matemáticas</option><option>Ciencias</option><option>Sistemas</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group full">
+            <label class="lbl">Nombre de la Asignatura</label>
+            <input class="fi" type="text" id="f-asignatura" placeholder="Ej. Cálculo Diferencial" required>
+          </div>
+          <div class="form-group full">
+            <label class="lbl">Grado / Semestre</label>
+            <div class="sel-wrap">
+              <select class="fi" id="f-grado" required>
+                <option value="">Seleccionar…</option>
+                <option>Primer Semestre</option><option>Segundo Semestre</option>
+                <option>Tercer Semestre</option><option>Cuarto Semestre</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección: información laboral -->
+        <div class="section-label">Información Laboral</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="lbl">EPS</label>
+            <input class="fi" type="text" id="f-eps" placeholder="Ej. Sura, Sanitas…" required>
+          </div>
+          <div class="form-group">
+            <label class="lbl">Salario (COP $)</label>
+            <input class="fi" type="number" id="f-salario" placeholder="Ej. 4500000" min="0" step="1000" required>
+          </div>
+        </div>
+      </form>
+    </div>
+    <!-- Botones del pie del modal -->
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="submit-btn" onclick="document.getElementById('form').requestSubmit()">
+        💾 Guardar Docente
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONFIRM DELETE ──: modal de confirmación de eliminación -->
+<div class="overlay" id="confirm-ov" onclick="if(event.target===this)closeConfirm()">
+  <div class="modal" style="max-width:420px">
+    <div class="confirm-box">
+      <div class="cicon">🗑️</div>
+      <h3>¿Eliminar Docente?</h3>
+      <p id="confirm-msg">Esta acción eliminará el registro permanentemente.</p>
+      <div class="actions">
+        <button class="btn btn-ghost" onclick="closeConfirm()">Cancelar</button>
+        <button class="btn btn-danger" onclick="confirmDelete()">Sí, eliminar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Contenedor para notificaciones tipo toast -->
+<div class="toast-wrap" id="toasts"></div>
 </body>
+</html>
