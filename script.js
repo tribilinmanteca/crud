@@ -1,14 +1,14 @@
 
 let docentes = JSON.parse(localStorage.getItem('doc_data') || '[]');
 let nextId   = +localStorage.getItem('doc_nid' ) || 1;
-
+// Si no hay docentes en el almacenamiento local, se cargan algunos datos de ejemplo para facilitar las pruebas y la demostración de la aplicación. Estos datos incluyen una variedad de docentes con diferentes áreas, niveles y asignaturas, lo que permite probar todas las funcionalidades de filtrado, ordenamiento, edición y eliminación.
 if (!docentes.length) {
   [
-    {tipoDoc:'C.C',numDoc:'10245678',nombre:'Carlos',apellido:'Mendoza',fechaNac:'1985-03-12',nivel:'Maestría',area:'Matemáticas',asignatura:'Cálculo Diferencial',grado:'Primer Semestre',eps:'Sura',salario:4200000},
-    {tipoDoc:'C.C',numDoc:'52301456',nombre:'Laura',apellido:'Rodríguez',fechaNac:'1990-07-22',nivel:'Doctorado',area:'Ciencias',asignatura:'Física General',grado:'Segundo Semestre',eps:'Sanitas',salario:5800000},
-    {tipoDoc:'C.E',numDoc:'87659321',nombre:'Andrés',apellido:'García',fechaNac:'1982-11-05',nivel:'Pregrado',area:'Sistemas',asignatura:'Programación I',grado:'Primer Semestre',eps:'Nueva EPS',salario:3500000},
-    {tipoDoc:'TI',numDoc:'1002345678',nombre:'María',apellido:'Jiménez',fechaNac:'1995-01-30',nivel:'Maestría',area:'Sistemas',asignatura:'Base de Datos',grado:'Tercer Semestre',eps:'Coomeva',salario:4500000},
-    {tipoDoc:'C.C',numDoc:'71234567',nombre:'Diego',apellido:'Torres',fechaNac:'1978-09-14',nivel:'Doctorado',area:'Matemáticas',asignatura:'Álgebra Lineal',grado:'Segundo Semestre',eps:'Sura',salario:6200000},
+    {tipoDoc:'C.C',numDoc:'10245678',nombre:'Chondre',apellido:'Torres',fechaNac:'1985-03-12',nivel:'Pregrado',area:'Matemáticas',asignatura:'Cálculo Diferencial',grado:'Primer Semestre',eps:'Sura',salario:4200000},
+    {tipoDoc:'C.C',numDoc:'52301456',nombre:'Gabriel',apellido:'Ayazo',fechaNac:'1990-07-22',nivel:'Doctorado',area:'Ciencias',asignatura:'Física General',grado:'Segundo Semestre',eps:'Sanitas',salario:18800000},
+    {tipoDoc:'C.E',numDoc:'87659321',nombre:'Steven',apellido:'Galindo',fechaNac:'1982-11-05',nivel:'Maestría',area:'Sistemas',asignatura:'Programación I',grado:'Primer Semestre',eps:'Nueva EPS',salario:4900000},
+    {tipoDoc:'TI',numDoc:'1002345678',nombre:'María',apellido:'Pineda',fechaNac:'1995-09-09',nivel:'Maestría',area:'Sistemas',asignatura:'Base de Datos',grado:'Tercer Semestre',eps:'Coomeva',salario:4500000},
+    {tipoDoc:'C.C',numDoc:'71234567',nombre:'Alejandra',apellido:'Gómez',fechaNac:'1978-09-14',nivel:'Doctorado',area:'Matemáticas',asignatura:'Álgebra Lineal',grado:'Segundo Semestre',eps:'Sura',salario:2200000},
   ].forEach(d => docentes.push({id:nextId++,...d}));
   save();
 }
@@ -115,3 +115,70 @@ function avatarBg(name){return avatarColors[name.charCodeAt(0)%avatarColors.leng
 
 document.getElementById('search').addEventListener('input',()=>{page=1;render()});
 
+//funcion para abrir el modal de registro/edicion, se llama al hacer click en el boton de editar o en el boton de agregar docente
+function openModal(id=null){
+  editId=id;
+  document.getElementById('form').reset();
+  if(id!==null){
+    const d=docentes.find(x=>x.id===id);if(!d)return;
+    ['tipoDoc','numDoc','nombre','apellido','fechaNac','nivel','area','asignatura','grado','eps','salario'].forEach(k=>document.getElementById('f-'+k).value=d[k]);
+    document.getElementById('modal-title').innerHTML='Editar <em>Docente</em>';
+    document.getElementById('submit-btn').innerHTML='💾 Actualizar';
+  } else {
+    document.getElementById('modal-title').innerHTML='Registrar <em>Docente</em>';
+    document.getElementById('submit-btn').innerHTML='💾 Guardar Docente';
+  }
+  document.getElementById('modal-ov').classList.add('open');
+}
+
+//funcion para cerrar el modal de registro/edicion, se llama al hacer click en el boton de cancelar o al presionar la tecla Escape
+function closeModal(){document.getElementById('modal-ov').classList.remove('open');editId=null}
+
+function handleSubmit(e){
+  e.preventDefault();
+  const fields=['tipoDoc','numDoc','nombre','apellido','fechaNac','nivel','area','asignatura','grado','eps','salario'];
+  const data=Object.fromEntries(fields.map(k=>[k,document.getElementById('f-'+k).value.trim()]));
+  data.salario=+data.salario;
+  if(editId!==null){
+    const idx=docentes.findIndex(d=>d.id===editId);
+    docentes[idx]={id:editId,...data};
+    toast('Docente actualizado correctamente','ok','✓');
+  } else {
+    docentes.push({id:nextId++,...data});
+    toast('Docente registrado exitosamente','ok','✓');
+  }
+  save();closeModal();render();
+}
+
+//funcion para abrir el overlay de confirmacion de eliminacion, se llama al hacer click en el boton de eliminar de un docente
+function askDel(id){
+  delId=id;
+  const d=docentes.find(x=>x.id===id);
+  document.getElementById('confirm-msg').textContent=`Se eliminará permanentemente el registro de ${d.nombre} ${d.apellido}.`;
+  document.getElementById('confirm-ov').classList.add('open');
+}
+
+//funcion para cerrar el overlay de confirmacion de eliminacion, se llama al hacer click en el boton de cancelar o al presionar la tecla Escape
+function closeConfirm(){document.getElementById('confirm-ov').classList.remove('open');delId=null}
+
+//funcion para eliminar el docente, se llama al hacer click en el boton de confirmar eliminacion
+function confirmDelete(){
+  docentes=docentes.filter(d=>d.id!==delId);
+  save();closeConfirm();render();
+  toast('Registro eliminado','err','🗑');
+}
+
+//funcion para mostrar un mensaje de toast, se llama al actualizar/crear un docente o al eliminarlo
+function toast(msg,type,icon){
+  const w=document.getElementById('toasts');
+  const t=document.createElement('div');
+  t.className='toast';
+  t.innerHTML=`<div class="toast-icon ${type}">${icon}</div><div class="toast-msg">${msg}</div>`;
+  w.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(40px)';t.style.transition='all .3s';setTimeout(()=>t.remove(),300)},2800);
+}
+
+//listener global para cerrar modales al presionar Escape
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeConfirm()}});
+
+render();
